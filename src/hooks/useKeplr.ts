@@ -1,19 +1,17 @@
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { connectKeplr } from '../lib/keplr'
 import { useGameStore } from '../store/useGameStore'
 
-type ConnectionState = 'idle' | 'connecting' | 'connected' | 'error'
-
 /**
  * Hook for managing Keplr wallet connection state.
- * Handles connecting, disconnecting and exposing the wallet address and connection status.
+ * Uses Zustand store for global connection state so all components share the same wallet status.
  * @returns Connection state, address, connect and disconnect functions
  */
 export function useKeplr() {
-  const [connectionState, setConnectionState] = useState<ConnectionState>('idle')
-  const [address, setAddress] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const player = useGameStore((s) => s.player)
   const setPlayer = useGameStore((s) => s.setPlayer)
+  const connectionState = useGameStore((s) => s.connectionState)
+  const setConnectionState = useGameStore((s) => s.setConnectionState)
 
   /**
    * Initiates the Keplr wallet connection.
@@ -21,11 +19,9 @@ export function useKeplr() {
    */
   const connect = useCallback(async () => {
     setConnectionState('connecting')
-    setError(null)
 
     try {
       const result = await connectKeplr()
-      setAddress(result.address)
       setConnectionState('connected')
 
       setPlayer({
@@ -35,28 +31,28 @@ export function useKeplr() {
         totalVotes: 0,
         winRate: 0,
       })
+
+      return result.address
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Could not connect to Keplr. Make sure the extension is installed and try again'
-      setError(message)
+      console.error('Keplr connection failed:', err)
       setConnectionState('error')
+      return null
     }
-  }, [setPlayer])
+  }, [setPlayer, setConnectionState])
 
   /**
    * Disconnects the wallet and resets connection state.
    */
   const disconnect = useCallback(() => {
-    setAddress(null)
     setConnectionState('idle')
-    setError(null)
-  }, [])
+    setPlayer(null as any)
+  }, [setConnectionState, setPlayer])
 
   return {
     connect,
     disconnect,
-    address,
-    isConnected: connectionState === 'connected',
+    address: player?.address ?? null,
+    isConnected: connectionState === 'connected' && !!player,
     connectionState,
-    error,
   }
 }

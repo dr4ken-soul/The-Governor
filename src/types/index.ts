@@ -65,6 +65,9 @@ export interface NpcVote {
   stakeAmount: number
 }
 
+/** Wallet connection state */
+export type ConnectionState = 'idle' | 'connecting' | 'connected' | 'error'
+
 /** Global game state managed by Zustand */
 export interface GameStore {
   player: Player | null
@@ -72,7 +75,8 @@ export interface GameStore {
   votes: Vote[]
   activeProposalId: string | null
   leaderboard: Player[]
-  setPlayer: (player: Player) => void
+  connectionState: ConnectionState
+  setPlayer: (player: Player | null) => void
   addProposal: (proposal: Proposal) => void
   castVote: (vote: Vote) => void
   updateBalance: (amount: number) => void
@@ -80,4 +84,5 @@ export interface GameStore {
   updateProposal: (id: string, updates: Partial<Proposal>) => void
   addLeaderboardEntry: (player: Player) => void
   updateLeaderboard: (player: Player) => void
+  setConnectionState: (state: ConnectionState) => void
 }

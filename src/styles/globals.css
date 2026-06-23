@@ -279,3 +279,15 @@ body::after {
   border-color: rgba(212, 168, 83, 0.25);
   transform: translateY(-2px);
 }
+
+/* Spin animation for loading spinner */
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Fade in animation for overlays */
+@keyframes fadeIn {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}

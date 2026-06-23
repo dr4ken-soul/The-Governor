@@ -1,9 +1,9 @@
 import { create } from 'zustand'
-import type { GameStore, Player, Proposal, Vote } from '../types'
+import type { GameStore, Player, Proposal, Vote, ConnectionState } from '../types'
 
 /**
  * Global game state store using Zustand.
- * Manages player state, proposals, votes, leaderboard and active proposal tracking.
+ * Manages player state, proposals, votes, leaderboard, wallet connection and active proposal tracking.
  */
 export const useGameStore = create<GameStore>((set) => ({
   player: null,
@@ -11,12 +11,19 @@ export const useGameStore = create<GameStore>((set) => ({
   votes: [],
   activeProposalId: null,
   leaderboard: [],
+  connectionState: 'idle' as ConnectionState,
 
   /**
-   * Sets the connected player in state.
-   * @param player - The player object with address and balance
+   * Sets the connected player in state or null to clear.
+   * @param player - The player object with address and balance, or null
    */
-  setPlayer: (player: Player) => set({ player }),
+  setPlayer: (player: Player | null) => set({ player }),
+
+  /**
+   * Sets the wallet connection state.
+   * @param connectionState - The new connection state
+   */
+  setConnectionState: (connectionState: ConnectionState) => set({ connectionState }),
 
   /**
    * Adds a new proposal to the proposals list.

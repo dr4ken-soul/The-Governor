@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { useKeplr } from '../../hooks/useKeplr'
 import { staggerContainer, staggerChild } from '../ui/FadeIn'
 
@@ -6,9 +8,30 @@ import { staggerContainer, staggerChild } from '../ui/FadeIn'
  * Hero section for the landing page.
  * Full viewport height with animated CSS grid background,
  * headline, subheadline and Connect Wallet CTA.
+ * The CTA connects the wallet first, shows a connecting state, then navigates to the chamber.
  */
 export function Hero() {
   const { connect, isConnected, connectionState } = useKeplr()
+  const navigate = useNavigate()
+  const [isTransitioning, setIsTransitioning] = useState(false)
+
+  /**
+   * Handles the CTA click. Connects wallet then navigates to chamber.
+   */
+  const handleCta = async () => {
+    if (isConnected) {
+      navigate('/app/chamber')
+      return
+    }
+
+    setIsTransitioning(true)
+    const addr = await connect()
+    if (addr) {
+      await new Promise((r) => setTimeout(r, 800))
+      navigate('/app/chamber')
+    }
+    setIsTransitioning(false)
+  }
 
   return (
     <section
@@ -67,23 +90,17 @@ export function Hero() {
           variants={staggerChild}
           transition={{ duration: 0.5, ease: 'easeOut' }}
         >
-          {!isConnected ? (
-            <button
-              className="btn-accent"
-              onClick={connect}
-              disabled={connectionState === 'connecting'}
-            >
-              {connectionState === 'connecting' ? 'Connecting...' : 'Connect wallet'}
-            </button>
-          ) : (
-            <a
-              href="/app/chamber"
-              className="btn-accent"
-              style={{ textDecoration: 'none' }}
-            >
-              Enter chamber
-            </a>
-          )}
+          <button
+            className="btn-accent"
+            onClick={handleCta}
+            disabled={connectionState === 'connecting' || isTransitioning}
+          >
+            {connectionState === 'connecting' || isTransitioning
+              ? 'Connecting...'
+              : isConnected
+                ? 'Enter chamber'
+                : 'Connect wallet'}
+          </button>
         </motion.div>
       </motion.div>
 
