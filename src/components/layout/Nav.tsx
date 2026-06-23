@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useKeplr } from '../../hooks/useKeplr'
 import { shortenAddress } from '../../lib/keplr'
@@ -17,6 +17,21 @@ export function Nav() {
   const navigate = useNavigate()
   const [showDropdown, setShowDropdown] = useState(false)
   const [showOverlay, setShowOverlay] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false)
+      }
+    }
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showDropdown])
+
 
   /**
    * Handles wallet connection with overlay transition.
@@ -114,7 +129,7 @@ export function Nav() {
             {connectionState === 'connecting' ? 'Connecting...' : 'Connect wallet'}
           </button>
         ) : (
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative' }} ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
               style={{
